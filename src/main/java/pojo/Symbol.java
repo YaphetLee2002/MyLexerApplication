@@ -1,5 +1,11 @@
 package pojo;
 
+
+/**
+ * @Author: 李亚赟
+ * @Date: 2023/3/23 19:00
+ * @Description: 符号集
+ */
 public class Symbol {
 
     private static volatile Symbol symbol;

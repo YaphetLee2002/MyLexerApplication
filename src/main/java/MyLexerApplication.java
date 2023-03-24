@@ -49,6 +49,8 @@ public class MyLexerApplication {
                 String line = sc.nextLine();
                 pretreatFile.add(line);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         // 词法分析

@@ -1,5 +1,10 @@
 package pojo;
 
+/**
+ * @Author: 李亚赟
+ * @Date: 2023/3/23 19:00
+ * @Description: 关键字类
+ */
 public class Keywords {
 
     private static volatile Keywords keywords;

@@ -1,6 +1,6 @@
 package service.impl;
 
-import pojo.DFA;
+import pojo.StateCode;
 import service.LexerService;
 import service.WordJudgeService;
 
@@ -9,7 +9,20 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+/**
+ * @Author: 李亚赟
+ * @Date: 2023/3/23 19:00
+ * @Description: 词法分析中的预处理方法接口的实现
+ */
 public class LexerServiceImpl implements LexerService {
+
+    /**
+     * 预处理方法
+     * @param str 待处理的字符串
+     * @param path 待处理的文件路径
+     * @throws IOException
+     */
+    @Override
     public void Pretreatment(List<Character> str, String path)
     {
         Character c;
@@ -82,19 +95,19 @@ public class LexerServiceImpl implements LexerService {
                         currentPosition++;
                         continue;
                     }
-                    /*下面是遇到注释//或/*的时候*/
-                    c = str.get(currentPosition + 1); //否则c取p指向字符的下一个字符
-                    if (c == '/') //遇到了双斜杠
+
+                    c = str.get(currentPosition + 1);
+                    if (c == '/')
                     {
-                        lineCommentPosition = currentPosition; //标记双斜杠的开始
-                        currentPosition += 2; //p指向双斜杠后面的字符
+                        lineCommentPosition = currentPosition;
+                        currentPosition += 2;
                     }
-                    else if (c == '*') //遇到了/*
+                    else if (c == '*')
                     {
-                        blockCommentPosition = currentPosition; //标记/*的开始
-                        currentPosition += 2; //p指向/*后面的字符
+                        blockCommentPosition = currentPosition;
+                        currentPosition += 2;
                     }
-                    /*上面是遇到注释//或/*的时候*/
+
                     else
                     {
                         currentPosition++;
@@ -205,6 +218,12 @@ public class LexerServiceImpl implements LexerService {
         }
     }
 
+    /**
+     * 词法分析
+     * @param pretreatFile 预处理后的文件内容
+     * @return 词法分析结果文件内容StringBuilder
+     * @throws Exception
+     */
     @Override
     public StringBuilder getTokens(List<String> pretreatFile) throws Exception {
 
@@ -215,7 +234,7 @@ public class LexerServiceImpl implements LexerService {
         int lineIndex = 0;
         int charIndex = 0;
         int tokenNum = 0;
-        String state = DFA.INITIAL;
+        String state = StateCode.INITIAL;
         StringBuilder tokens = new StringBuilder();
         String token = "";
         Character c = null;
@@ -259,34 +278,34 @@ public class LexerServiceImpl implements LexerService {
             pre = false;
             switch (state)
             {
-                case DFA.INITIAL:
+                case StateCode.INITIAL:
                 {
                     token = "";
                     if (c == '_' || Character.isAlphabetic(c))
                     {
                         if (c == 'u' || c == 'U' || c == 'l' || c == 'L')
                         {
-                            state = DFA.MIDCHAR;
+                            state = StateCode.MIDCHAR;
                         }
                         else
                         {
-                            state = DFA.IDENTIFIER;
+                            state = StateCode.IDENTIFIER;
                         }
                         token = token + c;
                     }
                     else if (Character.isDigit(c))
                     {
-                        state = DFA.INTERGER;
+                        state = StateCode.INTERGER;
                         token = token + c;
                     }
                     else if (c == '\'')
                     {
-                        state = DFA.CHAR;
+                        state = StateCode.CHAR;
                         token = token + c;
                     }
                     else if (c == '"')
                     {
-                        state = DFA.STRING;
+                        state = StateCode.STRING;
                         token = token + c;
                     }
                     else if (c == ' '||c=='\n'||c=='\r'||c=='\t')
@@ -307,7 +326,7 @@ public class LexerServiceImpl implements LexerService {
                         SymbolFlag = wordJudgeService.isSymbol(token);
                         if (SymbolFlag)
                         {
-                            state = DFA.SYMBOL;
+                            state = StateCode.SYMBOL;
                         }
                         else
                         {
@@ -316,17 +335,18 @@ public class LexerServiceImpl implements LexerService {
                     }
                     break;
                 }
-                case DFA.IDENTIFIER:
+                case StateCode.IDENTIFIER:
                 {
                     if (Character.isAlphabetic(c) || Character.isDigit(c) || c == '_')
                     {
-                        state = DFA.IDENTIFIER;
+                        state = StateCode.IDENTIFIER;
                         token = token + c;
                     }
                     else
                     {
                         if (wordJudgeService.isKeyword(token))
                         {
+                            state = StateCode.KEYWORD;
                             String tokenstream = "";
                             tokenstream = "[@" + (tokenNum) + "," + (charIndex - token.length()-1) + ":" + (charIndex-2) + "='" + token + "',<'" + token + "'>," + (lineIndex) + ":" + (charIndex - token.length() -1) + "]\n";
                             tokens.append(tokenstream);
@@ -340,40 +360,40 @@ public class LexerServiceImpl implements LexerService {
                             System.out.println(tokenstream);
                         }
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                         pre = true;
                     }
                     break;
                 }
-                case DFA.MIDCHAR:
+                case StateCode.MIDCHAR:
                 {
                     if (c == '\'')
                     {
-                        state = DFA.CHAR;
+                        state = StateCode.CHAR;
                         token = token + c;
                     }
                     else if (c == '"')
                     {
-                        state = DFA.STRING;
+                        state = StateCode.STRING;
                         token = token + c;
                     }
                     else if (c == '8')
                     {
-                        state = DFA.MID_STRING;
+                        state = StateCode.MID_STRING;
                         token = token + c;
                     }
                     else
                     {
-                        state = DFA.IDENTIFIER;
+                        state = StateCode.IDENTIFIER;
                         token = token + c;
                     }
                     break;
                 }
-                case DFA.CHAR:
+                case StateCode.CHAR:
                 {
                     if (c != '\'')
                     {
-                        state = DFA.CHAR;
+                        state = StateCode.CHAR;
                         token = token + c;
                     }
                     else
@@ -384,28 +404,28 @@ public class LexerServiceImpl implements LexerService {
                         tokens.append(tokenstream);
                         System.out.println(tokenstream);
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                     }
                     break;
 
                 }
-                case DFA.MID_STRING:
+                case StateCode.MID_STRING:
                     if (c == '"')
                     {
-                        state = DFA.STRING;
+                        state = StateCode.STRING;
                         token = token + c;
                     }
                     else
                     {
-                        state = DFA.IDENTIFIER;
+                        state = StateCode.IDENTIFIER;
                         token = token + c;
                     }
                     break;
-                case DFA.STRING:
+                case StateCode.STRING:
                 {
                     if (c != '"')
                     {
-                        state = DFA.STRING;
+                        state = StateCode.STRING;
                         token = token + c;
                     }
                     else
@@ -416,20 +436,20 @@ public class LexerServiceImpl implements LexerService {
                         tokens.append(tokenstream);
                         System.out.println(tokenstream);
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                     }
                     break;
                 }
-                case DFA.INTERGER:
+                case StateCode.INTERGER:
                 {
                     if (Character.isDigit(c) || c == 'x' || c == 'X' || c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F' || c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f' || c == 'L' || c == 'l' || c == 'U' || c == 'u')
                     {
-                        state = DFA.INTERGER;
+                        state = StateCode.INTERGER;
                         token = token + c;
                     }
                     else if (c == '.')
                     {
-                        state = DFA.FLOAT;
+                        state = StateCode.FLOAT;
                         token = token + c;
                     }
                     else
@@ -440,15 +460,15 @@ public class LexerServiceImpl implements LexerService {
                         tokens.append(tokenstream);
                         System.out.println(tokenstream);
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                     }
                     break;
                 }
-                case DFA.FLOAT:
+                case StateCode.FLOAT:
                 {
                     if (Character.isDigit(c) || c == 'e' || c == 'E' || c == 'f' || c == 'F' || c == 'L' || c == 'l' || c == 'p' || c == 'P' || c == '+' || c == '-' || c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'a' || c == 'b' || c == 'c' || c == 'd')
                     {
-                        state = DFA.FLOAT;
+                        state = StateCode.FLOAT;
                         token = token + c;
                     }
                     else
@@ -459,11 +479,11 @@ public class LexerServiceImpl implements LexerService {
                         tokens.append(tokenstream);
                         System.out.println(tokenstream);
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                     }
                     break;
                 }
-                case DFA.SYMBOL:
+                case StateCode.SYMBOL:
                 {
                     String temp = token + c;
                     if (!wordJudgeService.isSymbol(temp))
@@ -474,11 +494,11 @@ public class LexerServiceImpl implements LexerService {
                         tokens.append(tokenstream);
                         System.out.println(tokenstream);
                         tokenNum++;
-                        state = DFA.INITIAL;
+                        state = StateCode.INITIAL;
                     }
                     else
                     {
-                        state = DFA.SYMBOL;
+                        state = StateCode.SYMBOL;
                         token = temp;
                     }
                     break;

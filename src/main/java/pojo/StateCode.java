@@ -1,6 +1,11 @@
 package pojo;
 
-public class DFA {
+/**
+ * @Author: 李亚赟
+ * @Date: 2023/3/23 19:00
+ * @Description: 状态码类
+ */
+public class StateCode {
     public static final String INITIAL = "20001";
     public static final String IDENTIFIER = "20002";
     public static final String KEYWORD = "20003";
